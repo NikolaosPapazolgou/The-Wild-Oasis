@@ -1,21 +1,27 @@
-import { useEffect } from "react";
 import Heading from "../ui/Heading";
 import Row from "../ui/Row";
-import { getCabins } from "../services/apiCabins";
+import CabinTable from "../features/cabins/CabinTable";
+import Button from "../ui/Button";
+import { useState } from "react";
+import CreateCabinForm from "../features/cabins/CreateCabinForm";
 
 function Cabins() {
-  useEffect(function () {
-    getCabins().then((data) => console.log(data));
-  }, []);
+  const [showForm, setshowForm] = useState(false);
   return (
-    <Row type="horizontal">
-      <Heading as="h1">All cabins</Heading>
-      <p>TEST</p>
-      <img
-        src="https://pinshqtrmoexaxmhvduw.supabase.co/storage/v1/object/public/cabin-images/cabin-001.jpg"
-        alt="cabin-photo"
-      />
-    </Row>
+    //Returning a react Fragment because there is a main element provided to surround all the OutLet react Components
+    <>
+      <Row type="horizontal">
+        <Heading as="h1">All cabins</Heading>
+        <p>Filter / Sort </p>
+      </Row>
+      <Row>
+        <CabinTable />
+        <Button onClick={() => setshowForm((showForm) => !showForm)}>
+          Add new cabin
+        </Button>
+        {showForm && <CreateCabinForm />}
+      </Row>
+    </>
   );
 }
 
