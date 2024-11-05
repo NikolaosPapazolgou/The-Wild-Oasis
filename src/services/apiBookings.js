@@ -1,5 +1,45 @@
 import { getToday } from "../utils/helpers";
 import supabase from "./supabase";
+import { PAGE_SIZE } from "../utils/constants";
+
+export async function getBookings({ sortBy, filter, page }) {
+  // Initial query without pagination to get the total count of rows
+  let query = supabase
+    .from("bookings")
+    .select(
+      "id, created_at, startDate, endDate, numNights, numGuests, status, totalPrice, cabins(name), guests(fullName, email)",
+      { count: "exact" }
+    );
+
+  // Apply filters if present
+  if (filter) query = query[filter.method || "eq"](filter.field, filter.value);
+
+  // Apply sorting if specified
+  if (sortBy) {
+    query = query.order(sortBy.field, {
+      ascending: sortBy.direction === "asc",
+    });
+  }
+
+  // Get total row count before applying pagination
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error(error);
+    throw new Error("Bookings could not be loaded");
+  }
+
+  // Calculate pagination limits based on total count
+  if (page) {
+    const from = Math.min((page - 1) * PAGE_SIZE, count - 1);
+    const to = Math.min(from + PAGE_SIZE - 1, count - 1);
+    query = query.range(from, to);
+  }
+
+  const paginatedData = await query;
+
+  return { data: paginatedData.data, count };
+}
 
 export async function getBooking(id) {
   const { data, error } = await supabase
